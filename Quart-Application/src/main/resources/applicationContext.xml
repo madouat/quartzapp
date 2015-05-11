@@ -1,0 +1,84 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+
+
+	<context:property-placeholder location="classpath:application.properties" />
+
+
+<bean id="databaseinfos" class="bf.quartzapp.DatabaseInfo">
+		<property name="dbHost" value="${database.info.host}" />
+		<property name="dbType" value="${database.info.type}" />
+		<property name="dbName" value="${database.info.name}" />
+		<property name="dbPort" value="${database.info.port}" />
+		<property name="dbUser" value="${database.info.user}" />
+		<property name="dbPassword" value="${database.info.password}" />
+	</bean>
+	
+	<bean id="scheduledTask" class="bf.quartzapp.ScheduledTask">
+		<property name="repositoryUser" value="${repository.username}" />
+		<property name="repositoryPassword" value="${repository.password}" />
+		<property name="databaseInfos" ref="databaseinfos" />
+	</bean>
+
+	<!-- quartz -->
+	<bean name="quartzJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass"
+			value="bf.quartzapp.quartz.ScheduledJobRunner" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="scheduledTask" value-ref="scheduledTask" />
+				<entry key="transformationorJobDirectory" value="${A.task.directory}" />
+				<entry key="transformationorJobName" value="${A.task.name}" />
+				<entry key="isRepositoryEnable" value="true" />	
+				<entry key="outputFormat" value="json" />	
+				<entry key="transformationorJobDescription" value="${A.task.description}" />		
+			</map>
+		</property>
+	</bean>
+	
+	
+	<bean name="quartzJobB" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass"
+			value="bf.quartzapp.quartz.ScheduledJobRunner" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="scheduledTask" value-ref="scheduledTask" />
+				<entry key="transformationorJobDirectory" value="${B.task.directory}" />
+				<entry key="transformationorJobName" value="${B.task.name}" />
+				<entry key="isRepositoryEnable" value="true" />	
+				<entry key="outputFormat" value="xml" />	
+				<entry key="transformationorJobDescription" value="${B.task.description}" />		
+			</map>
+		</property>
+	</bean>
+
+	<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="quartzJob" />
+		<property name="cronExpression" value="${cronexpression}" />
+	</bean>
+	
+	<bean id="cronTrigger2" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="quartzJobB" />
+		<property name="cronExpression" value="${B.job.cronexpression}" />
+	</bean>
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="jobDetails">
+			<list>
+				<ref bean="quartzJob" />
+				<ref bean="quartzJobB" />
+			</list>
+		</property>
+		<property name="triggers">
+			<list>
+				<ref bean="cronTrigger" />
+				<ref bean="cronTrigger2" />
+			</list>
+		</property>
+	</bean>
+</beans>

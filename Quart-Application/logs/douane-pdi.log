@@ -1,0 +1,2 @@
+2015-05-10 18:11:00 INFO  ScheduledJobRunner:51 - Start running Task: Name[myjob_parameters] Description[Job permettant d'executer un sample]
+2015-05-10 18:11:00 INFO  ScheduledJobRunner:51 - Start running Task: Name[myjob_parameters] Description[sample job B]
